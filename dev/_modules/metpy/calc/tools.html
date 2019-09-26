@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>metpy.calc.tools &mdash; MetPy 0.10</title>
+  <title>metpy.calc.tools &mdash; MetPy 0.10.0</title>
   
 
   
@@ -43,7 +43,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="MetPy 0.10" href="../../../index.html"/>
+    <link rel="top" title="MetPy 0.10.0" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -79,7 +79,7 @@
                 
                   <div class="version-dropdown">
                     <select class="version-list" id="version-list">
-                      <option value=''>0.10</option>
+                      <option value=''>0.10.0</option>
                       
                         
                           <option value="../latest">latest</option>
@@ -117,11 +117,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installguide.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../startingguide.html">Getting Started with MetPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units.html">Unit Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorials/index.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">Reference Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../roadmap.html">MetPy Roadmap</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../gempak.html">GEMPAK Conversion Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../SUPPORT.html">Support</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../CONTRIBUTING.html">Contributors Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../infrastructureguide.html">Infrastructure Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../citing.html">Citing MetPy</a></li>
@@ -189,7 +192,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for metpy.calc.tools</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (c) 2016,2017,2018 MetPy Developers.</span>
+<span></span><span class="c1"># Copyright (c) 2016,2017,2018,2019 MetPy Developers.</span>
 <span class="c1"># Distributed under the terms of the BSD 3-Clause License.</span>
 <span class="c1"># SPDX-License-Identifier: BSD-3-Clause</span>
 <span class="sd">&quot;&quot;&quot;Contains a collection of generally useful calculation tools.&quot;&quot;&quot;</span>
@@ -211,12 +214,12 @@
 <span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">height_to_pressure_std</span><span class="p">,</span> <span class="n">pressure_to_height_std</span>
-<span class="kn">from</span> <span class="nn">..cbook</span> <span class="k">import</span> <span class="n">broadcast_indices</span>
+<span class="kn">from</span> <span class="nn">..cbook</span> <span class="k">import</span> <span class="n">broadcast_indices</span><span class="p">,</span> <span class="n">result_type</span>
 <span class="kn">from</span> <span class="nn">..deprecation</span> <span class="k">import</span> <span class="n">deprecated</span><span class="p">,</span> <span class="n">metpyDeprecation</span>
 <span class="kn">from</span> <span class="nn">..interpolate.one_dimension</span> <span class="k">import</span> <span class="n">interpolate_1d</span><span class="p">,</span> <span class="n">interpolate_nans_1d</span><span class="p">,</span> <span class="n">log_interpolate_1d</span>
 <span class="kn">from</span> <span class="nn">..package_tools</span> <span class="k">import</span> <span class="n">Exporter</span>
 <span class="kn">from</span> <span class="nn">..units</span> <span class="k">import</span> <span class="n">atleast_1d</span><span class="p">,</span> <span class="n">check_units</span><span class="p">,</span> <span class="n">concatenate</span><span class="p">,</span> <span class="n">diff</span><span class="p">,</span> <span class="n">units</span>
-<span class="kn">from</span> <span class="nn">..xarray</span> <span class="k">import</span> <span class="n">CFConventionHandler</span><span class="p">,</span> <span class="n">preprocess_xarray</span>
+<span class="kn">from</span> <span class="nn">..xarray</span> <span class="k">import</span> <span class="n">check_axis</span><span class="p">,</span> <span class="n">preprocess_xarray</span>
 
 <span class="n">exporter</span> <span class="o">=</span> <span class="n">Exporter</span><span class="p">(</span><span class="nb">globals</span><span class="p">())</span>
 
@@ -289,7 +292,7 @@
 <div class="viewcode-block" id="find_intersections"><a class="viewcode-back" href="../../../api/generated/metpy.calc.find_intersections.html#metpy.calc.find_intersections">[docs]</a><span class="nd">@exporter</span><span class="o">.</span><span class="n">export</span>
 <span class="nd">@preprocess_xarray</span>
 <span class="nd">@units</span><span class="o">.</span><span class="n">wraps</span><span class="p">((</span><span class="s1">&#39;=A&#39;</span><span class="p">,</span> <span class="s1">&#39;=B&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;=A&#39;</span><span class="p">,</span> <span class="s1">&#39;=B&#39;</span><span class="p">,</span> <span class="s1">&#39;=B&#39;</span><span class="p">))</span>
-<span class="k">def</span> <span class="nf">find_intersections</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">find_intersections</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">log_x</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Calculate the best estimate of intersection.</span>
 
 <span class="sd">    Calculates the best estimates of the intersection of two y-value</span>
@@ -306,6 +309,9 @@
 <span class="sd">    direction : string, optional</span>
 <span class="sd">        specifies direction of crossing. &#39;all&#39;, &#39;increasing&#39; (a becoming greater than b),</span>
 <span class="sd">        or &#39;decreasing&#39; (b becoming greater than a). Defaults to &#39;all&#39;.</span>
+<span class="sd">    log_x : bool, optional</span>
+<span class="sd">        Use logarithmic interpolation along the `x` axis (i.e. for finding intersections</span>
+<span class="sd">        in pressure coordinates). Default is False.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -313,6 +319,10 @@
 <span class="sd">        intersections of the lines.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Change x to logarithmic if log_x=True</span>
+    <span class="k">if</span> <span class="n">log_x</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
     <span class="c1"># Find the index of the points just before the intersection(s)</span>
     <span class="n">nearest_idx</span> <span class="o">=</span> <span class="n">nearest_intersection_idx</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
     <span class="n">next_idx</span> <span class="o">=</span> <span class="n">nearest_idx</span> <span class="o">+</span> <span class="mi">1</span>
@@ -347,6 +357,10 @@
     <span class="c1"># If there&#39;s no intersections, return</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect_x</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">intersect_x</span><span class="p">,</span> <span class="n">intersect_y</span>
+
+    <span class="c1"># Return x to linear if log_x is True</span>
+    <span class="k">if</span> <span class="n">log_x</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">intersect_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">intersect_x</span><span class="p">)</span>
 
     <span class="c1"># Check for duplicates</span>
     <span class="n">duplicate_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ediff1d</span><span class="p">(</span><span class="n">intersect_x</span><span class="p">,</span> <span class="n">to_end</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
@@ -439,14 +453,15 @@
 <span class="sd">    data), returning a mask that can be used to select the points from one or more arrays</span>
 <span class="sd">    (e.g. arrays of temperature and dew point). The points selected can be controlled by</span>
 <span class="sd">    providing an array of ``priority`` values (e.g. rainfall totals to ensure that</span>
-<span class="sd">    stations with higher precipitation remain in the mask).</span>
+<span class="sd">    stations with higher precipitation remain in the mask). The points and radius can be</span>
+<span class="sd">    specified with units. If none are provided, meters are assumed.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    points : (N, K) array-like</span>
 <span class="sd">        N locations of the points in K dimensional space</span>
-<span class="sd">    radius : float</span>
-<span class="sd">        minimum radius allowed between points</span>
+<span class="sd">    radius : `pint.Quantity` or float</span>
+<span class="sd">        Minimum radius allowed between points. If units are not provided, meters is assumed.</span>
 <span class="sd">    priority : (N, K) array-like, optional</span>
 <span class="sd">        If given, this should have the same shape as ``points``; these values will</span>
 <span class="sd">        be used to control selection priority for points.</span>
@@ -459,12 +474,19 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; metpy.calc.reduce_point_density(np.array([1, 2, 3]), 1.)</span>
-<span class="sd">    array([ True, False,  True])</span>
+<span class="sd">    array([ True, False, True])</span>
 <span class="sd">    &gt;&gt;&gt; metpy.calc.reduce_point_density(np.array([1, 2, 3]), 1.,</span>
 <span class="sd">    ... priority=np.array([0.1, 0.9, 0.3]))</span>
-<span class="sd">    array([False,  True, False])</span>
+<span class="sd">    array([False, True, False])</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Handle input with units. Assume meters if units are not specified</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">):</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="n">radius</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">m</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">):</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">m</span>
+
     <span class="c1"># Handle 1D input</span>
     <span class="k">if</span> <span class="n">points</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">points</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -502,8 +524,8 @@
     <span class="sd">&quot;&quot;&quot;Calculate the bounding pressure and height in a layer.</span>
 
 <span class="sd">    Given pressure, optional heights, and a bound, return either the closest pressure/height</span>
-<span class="sd">    or interpolated pressure/height. If no heights are provided, a standard atmosphere is</span>
-<span class="sd">    assumed.</span>
+<span class="sd">    or interpolated pressure/height. If no heights are provided, a standard atmosphere</span>
+<span class="sd">    ([NOAA1976]_) is assumed.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -570,8 +592,9 @@
                     <span class="c1"># Need to cast back to the input type since interp (up to at least numpy</span>
                     <span class="c1"># 1.13 always returns float64. This can cause upstream users problems,</span>
                     <span class="c1"># resulting in something like np.append() to upcast.</span>
-                    <span class="n">bound_pressure</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">bound</span><span class="p">),</span> <span class="n">heights</span><span class="p">,</span>
-                                               <span class="n">pressure</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">bound</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">*</span> <span class="n">pressure</span><span class="o">.</span><span class="n">units</span>
+                    <span class="n">bound_pressure</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">bound</span><span class="o">.</span><span class="n">m</span><span class="p">),</span> <span class="n">heights</span><span class="o">.</span><span class="n">m</span><span class="p">,</span>
+                                                <span class="n">pressure</span><span class="o">.</span><span class="n">m</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">result_type</span><span class="p">(</span><span class="n">bound</span><span class="p">))</span>
+                                      <span class="o">*</span> <span class="n">pressure</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">heights</span> <span class="o">-</span> <span class="n">bound</span><span class="p">))</span><span class="o">.</span><span class="n">argmin</span><span class="p">()</span>
                     <span class="n">bound_pressure</span> <span class="o">=</span> <span class="n">pressure</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
@@ -591,13 +614,15 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Bound must be specified in units of length or pressure.&#39;</span><span class="p">)</span>
 
     <span class="c1"># If the bound is out of the range of the data, we shouldn&#39;t extrapolate</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">_greater_or_close</span><span class="p">(</span><span class="n">bound_pressure</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">pressure</span><span class="p">)</span> <span class="o">*</span> <span class="n">pressure</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
-            <span class="ow">and</span> <span class="n">_less_or_close</span><span class="p">(</span><span class="n">bound_pressure</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">pressure</span><span class="p">)</span> <span class="o">*</span> <span class="n">pressure</span><span class="o">.</span><span class="n">units</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">_greater_or_close</span><span class="p">(</span><span class="n">bound_pressure</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">pressure</span><span class="o">.</span><span class="n">m</span><span class="p">)</span> <span class="o">*</span> <span class="n">pressure</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">_less_or_close</span><span class="p">(</span><span class="n">bound_pressure</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">pressure</span><span class="o">.</span><span class="n">m</span><span class="p">)</span> <span class="o">*</span> <span class="n">pressure</span><span class="o">.</span><span class="n">units</span><span class="p">)):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Specified bound is outside pressure range.&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">heights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">_less_or_close</span><span class="p">(</span><span class="n">bound_height</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">heights</span><span class="p">)</span> <span class="o">*</span> <span class="n">heights</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
-                <span class="ow">and</span> <span class="n">_greater_or_close</span><span class="p">(</span><span class="n">bound_height</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">heights</span><span class="p">)</span> <span class="o">*</span> <span class="n">heights</span><span class="o">.</span><span class="n">units</span><span class="p">)):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Specified bound is outside height range.&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">heights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">_less_or_close</span><span class="p">(</span><span class="n">bound_height</span><span class="p">,</span>
+                                                   <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">heights</span><span class="o">.</span><span class="n">m</span><span class="p">)</span> <span class="o">*</span> <span class="n">heights</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+                                    <span class="ow">and</span> <span class="n">_greater_or_close</span><span class="p">(</span><span class="n">bound_height</span><span class="p">,</span>
+                                                          <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">heights</span><span class="o">.</span><span class="n">m</span><span class="p">)</span>
+                                                          <span class="o">*</span> <span class="n">heights</span><span class="o">.</span><span class="n">units</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Specified bound is outside height range.&#39;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">bound_pressure</span><span class="p">,</span> <span class="n">bound_height</span>
 
@@ -617,7 +642,7 @@
 <span class="sd">        Atmospheric heights</span>
 <span class="sd">    depth : `pint.Quantity`</span>
 <span class="sd">        The thickness of the layer</span>
-<span class="sd">    *args : array-like</span>
+<span class="sd">    args : array-like</span>
 <span class="sd">        Atmospheric variable(s) measured at the given pressures</span>
 <span class="sd">    bottom : `pint.Quantity`, optional</span>
 <span class="sd">        The bottom of the layer</span>
@@ -673,9 +698,9 @@
     <span class="k">if</span> <span class="n">interpolate</span><span class="p">:</span>
         <span class="c1"># If we don&#39;t have the bottom or top requested, append them</span>
         <span class="k">if</span> <span class="n">top</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">heights_interp</span><span class="p">:</span>
-            <span class="n">heights_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">heights_interp</span><span class="p">,</span> <span class="n">top</span><span class="p">))</span> <span class="o">*</span> <span class="n">heights</span><span class="o">.</span><span class="n">units</span>
+            <span class="n">heights_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">heights_interp</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">top</span><span class="o">.</span><span class="n">m</span><span class="p">))</span> <span class="o">*</span> <span class="n">heights</span><span class="o">.</span><span class="n">units</span>
         <span class="k">if</span> <span class="n">bottom</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">heights_interp</span><span class="p">:</span>
-            <span class="n">heights_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">heights_interp</span><span class="p">,</span> <span class="n">bottom</span><span class="p">))</span> <span class="o">*</span> <span class="n">heights</span><span class="o">.</span><span class="n">units</span>
+            <span class="n">heights_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">heights_interp</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">bottom</span><span class="o">.</span><span class="n">m</span><span class="p">))</span> <span class="o">*</span> <span class="n">heights</span><span class="o">.</span><span class="n">units</span>
 
     <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">heights_interp</span><span class="p">)</span>
 
@@ -710,11 +735,11 @@
 <span class="sd">    ----------</span>
 <span class="sd">    pressure : array-like</span>
 <span class="sd">        Atmospheric pressure profile</span>
-<span class="sd">    *args : array-like</span>
+<span class="sd">    args : array-like</span>
 <span class="sd">        Atmospheric variable(s) measured at the given pressures</span>
 <span class="sd">    heights: array-like, optional</span>
 <span class="sd">        Atmospheric heights corresponding to the given pressures. Defaults to using</span>
-<span class="sd">        heights calculated from ``p`` assuming a standard atmosphere.</span>
+<span class="sd">        heights calculated from ``p`` assuming a standard atmosphere [NOAA1976]_.</span>
 <span class="sd">    bottom : `pint.Quantity`, optional</span>
 <span class="sd">        The bottom of the layer as a pressure or height above the surface pressure. Defaults</span>
 <span class="sd">        to the highest pressure or lowest height given.</span>
@@ -748,7 +773,7 @@
 
     <span class="c1"># If the bottom is not specified, make it the surface pressure</span>
     <span class="k">if</span> <span class="n">bottom</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">bottom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">pressure</span><span class="p">)</span> <span class="o">*</span> <span class="n">pressure</span><span class="o">.</span><span class="n">units</span>
+        <span class="n">bottom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">pressure</span><span class="o">.</span><span class="n">m</span><span class="p">)</span> <span class="o">*</span> <span class="n">pressure</span><span class="o">.</span><span class="n">units</span>
 
     <span class="n">bottom_pressure</span><span class="p">,</span> <span class="n">bottom_height</span> <span class="o">=</span> <span class="n">_get_bound_pressure_height</span><span class="p">(</span><span class="n">pressure</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span>
                                                                 <span class="n">heights</span><span class="o">=</span><span class="n">heights</span><span class="p">,</span>
@@ -780,9 +805,9 @@
     <span class="k">if</span> <span class="n">interpolate</span><span class="p">:</span>
         <span class="c1"># If we don&#39;t have the bottom or top requested, append them</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">top_pressure</span><span class="p">,</span> <span class="n">p_interp</span><span class="p">)):</span>
-            <span class="n">p_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p_interp</span><span class="p">,</span> <span class="n">top_pressure</span><span class="p">))</span> <span class="o">*</span> <span class="n">pressure</span><span class="o">.</span><span class="n">units</span>
+            <span class="n">p_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p_interp</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">top_pressure</span><span class="o">.</span><span class="n">m</span><span class="p">))</span> <span class="o">*</span> <span class="n">pressure</span><span class="o">.</span><span class="n">units</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">bottom_pressure</span><span class="p">,</span> <span class="n">p_interp</span><span class="p">)):</span>
-            <span class="n">p_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p_interp</span><span class="p">,</span> <span class="n">bottom_pressure</span><span class="p">))</span> <span class="o">*</span> <span class="n">pressure</span><span class="o">.</span><span class="n">units</span>
+            <span class="n">p_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p_interp</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">bottom_pressure</span><span class="o">.</span><span class="n">m</span><span class="p">))</span> <span class="o">*</span> <span class="n">pressure</span><span class="o">.</span><span class="n">units</span>
 
     <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p_interp</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
@@ -964,47 +989,6 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="n">value</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="lat_lon_grid_spacing"><a class="viewcode-back" href="../../../api/generated/metpy.calc.lat_lon_grid_spacing.html#metpy.calc.lat_lon_grid_spacing">[docs]</a><span class="nd">@deprecated</span><span class="p">(</span><span class="s1">&#39;0.8&#39;</span><span class="p">,</span> <span class="n">addendum</span><span class="o">=</span><span class="s1">&#39; This function has been replaced by the signed delta distance&#39;</span>
-                            <span class="s1">&#39;calculation lat_lon_grid_deltas and will be removed in MetPy&#39;</span>
-                            <span class="s1">&#39; 0.11.&#39;</span><span class="p">,</span>
-            <span class="n">pending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="nd">@exporter</span><span class="o">.</span><span class="n">export</span>
-<span class="nd">@preprocess_xarray</span>
-<span class="k">def</span> <span class="nf">lat_lon_grid_spacing</span><span class="p">(</span><span class="n">longitude</span><span class="p">,</span> <span class="n">latitude</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the distance between grid points that are in a latitude/longitude format.</span>
-
-<span class="sd">    Calculate the distance between grid points when the grid spacing is defined by</span>
-<span class="sd">    delta lat/lon rather than delta x/y</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    longitude : array_like</span>
-<span class="sd">        array of longitudes defining the grid</span>
-<span class="sd">    latitude : array_like</span>
-<span class="sd">        array of latitudes defining the grid</span>
-<span class="sd">    kwargs</span>
-<span class="sd">        Other keyword arguments to pass to :class:`~pyproj.Geod`</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">     dx, dy: 2D arrays of distances between grid points in the x and y direction</span>
-
-<span class="sd">    Notes</span>
-<span class="sd">    -----</span>
-<span class="sd">    Accepts, 1D or 2D arrays for latitude and longitude</span>
-<span class="sd">    Assumes [Y, X] for 2D arrays</span>
-
-<span class="sd">    .. deprecated:: 0.8.0</span>
-<span class="sd">        Function has been replaced with the signed delta distance calculation</span>
-<span class="sd">        `lat_lon_grid_deltas` and will be removed from MetPy in 0.11.0.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Use the absolute value of the signed function replacing this</span>
-    <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">lat_lon_grid_deltas</span><span class="p">(</span><span class="n">longitude</span><span class="p">,</span> <span class="n">latitude</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dx</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="lat_lon_grid_deltas"><a class="viewcode-back" href="../../../api/generated/metpy.calc.lat_lon_grid_deltas.html#metpy.calc.lat_lon_grid_deltas">[docs]</a><span class="nd">@exporter</span><span class="o">.</span><span class="n">export</span>
 <span class="nd">@preprocess_xarray</span>
 <span class="k">def</span> <span class="nf">lat_lon_grid_deltas</span><span class="p">(</span><span class="n">longitude</span><span class="p">,</span> <span class="n">latitude</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1116,13 +1100,13 @@
             <span class="c1"># Initialize new kwargs with the axis number</span>
             <span class="n">new_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">get_axis_num</span><span class="p">(</span><span class="n">axis</span><span class="p">)}</span>
 
-            <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_metpy_axis&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;T&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">check_axis</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">axis</span><span class="p">],</span> <span class="s1">&#39;time&#39;</span><span class="p">):</span>
                 <span class="c1"># Time coordinate, need to convert to seconds from datetimes</span>
                 <span class="n">new_kwargs</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span><span class="o">.</span><span class="n">metpy</span><span class="o">.</span><span class="n">as_timestamp</span><span class="p">()</span><span class="o">.</span><span class="n">metpy</span><span class="o">.</span><span class="n">unit_array</span>
-            <span class="k">elif</span> <span class="n">CFConventionHandler</span><span class="o">.</span><span class="n">check_axis</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">axis</span><span class="p">],</span> <span class="s1">&#39;lon&#39;</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="n">check_axis</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">axis</span><span class="p">],</span> <span class="s1">&#39;lon&#39;</span><span class="p">):</span>
                 <span class="c1"># Longitude coordinate, need to get grid deltas</span>
                 <span class="n">new_kwargs</span><span class="p">[</span><span class="s1">&#39;delta&#39;</span><span class="p">],</span> <span class="n">_</span> <span class="o">=</span> <span class="n">grid_deltas_from_dataarray</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">CFConventionHandler</span><span class="o">.</span><span class="n">check_axis</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">axis</span><span class="p">],</span> <span class="s1">&#39;lat&#39;</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="n">check_axis</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">axis</span><span class="p">],</span> <span class="s1">&#39;lat&#39;</span><span class="p">):</span>
                 <span class="c1"># Latitude coordinate, need to get grid deltas</span>
                 <span class="n">_</span><span class="p">,</span> <span class="n">new_kwargs</span><span class="p">[</span><span class="s1">&#39;delta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">grid_deltas_from_dataarray</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1512,7 +1496,7 @@
             <span class="n">diff_size</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
             <span class="n">delta_units</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="n">delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">diff_size</span><span class="p">,</span> <span class="n">subok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">delta_units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">delta_units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span> <span class="o">*</span> <span class="n">delta_units</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">delta</span> <span class="o">=</span> <span class="n">_broadcast_to_axis</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
@@ -1540,17 +1524,15 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    angle</span>
+<span class="sd">    `pint.Quantity`</span>
 <span class="sd">        The angle in degrees</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_dir</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="c1"># abb_dirs = abbrieviated directions</span>
         <span class="n">abb_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">_abbrieviate_direction</span><span class="p">(</span><span class="n">input_dir</span><span class="p">)]</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_dir</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="n">input_dir_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_dir</span><span class="p">)</span>
-        <span class="n">abb_dir_str</span> <span class="o">=</span> <span class="n">_abbrieviate_direction</span><span class="p">(</span><span class="n">input_dir_str</span><span class="p">)</span>
-        <span class="n">abb_dirs</span> <span class="o">=</span> <span class="n">abb_dir_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">input_dir_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">input_dir</span><span class="p">))</span>
+        <span class="n">abb_dirs</span> <span class="o">=</span> <span class="n">_abbrieviate_direction</span><span class="p">(</span><span class="n">input_dir_str</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="n">abb_dirs</span><span class="p">)(</span><span class="n">DIR_DICT</span><span class="p">)</span></div>
 
 
@@ -1581,7 +1563,7 @@
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, MetPy Developers.
-      Last updated on Jul 06, 2019 at 20:25:37.
+      Last updated on Sep 26, 2019 at 20:32:58.
 
     </p>
   </div>
@@ -1618,7 +1600,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.10.0+15.gcdfad57',
+            VERSION:'0.10.0.post249+gf6dfe81',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
@@ -1630,8 +1612,8 @@
       <script type="text/javascript" src="../../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../../_static/doctools.js"></script>
       <script type="text/javascript" src="../../../_static/language_data.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
       <script type="text/javascript" src="../../../_static/pop_ver.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
